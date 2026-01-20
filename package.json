@@ -11,8 +11,10 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
+    "js-yaml": "^4.1.1",
     "sequelize": "^6.5.0",
-    "sqlite3": "^5.0.2"
+    "sqlite3": "^5.0.2",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.7"

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carambar & Co - Blagues</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 50%, #FFD23F 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 40px 20px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            animation: bounceIn 1s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .logo {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #FF6B35;
+            text-shadow: 3px 3px 0 #F7931E;
+            margin-bottom: 20px;
+            animation: wiggle 2s infinite;
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #F7931E;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0 #fff;
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: #666;
+            margin-bottom: 40px;
+            font-style: italic;
+        }
+
+        .joke-btn {
+            background: linear-gradient(45deg, #FF6B35, #F7931E);
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255,107,53,0.4);
+            transition: all 0.3s ease;
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .joke-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(255,107,53,0.6);
+        }
+
+        .joke-btn:active {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .joke-container {
+            margin-top: 40px;
+            min-height: 120px;
+        }
+
+        .joke {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            font-size: 1.4rem;
+            line-height: 1.6;
+            border-left: 6px solid #FF6B35;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .joke.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .joke-question {
+            font-weight: bold;
+            color: #FF6B35;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .joke-answer {
+            color: #F7931E;
+            font-style: italic;
+            font-size: 1.6rem;
+        }
+
+        .loading {
+            color: #FF6B35;
+            font-size: 1.2rem;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 3rem;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .joke-btn {
+                padding: 18px 40px;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="logo">🍭</div>
+    <h1>Carambar & Co</h1>
+    <p class="subtitle">La bonne humeur en un clic !</p>
+
+    <button class="joke-btn" onclick="getRandomJoke()">
+        🎉 Sers-moi une blague ! 🎉
+    </button>
+
+    <div class="joke-container">
+        <div id="joke" class="joke"></div>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:3000/blagues/random'; // Change pour Render après déploiement
+
+    async function getRandomJoke() {
+        const btn = document.querySelector('.joke-btn');
+        const jokeEl = document.getElementById('joke');
+
+        // Animation bouton
+        btn.textContent = '🔄 Une seconde...';
+        btn.style.transform = 'scale(0.95)';
+
+        try {
+            const response = await fetch(API_URL);
+            const joke = await response.json();
+
+            // Affiche la blague avec animation
+            jokeEl.innerHTML = `
+                    <div class="joke-question">❓ ${joke.question}</div>
+                    <div class="joke-answer">💥 ${joke.answer}</div>
+                `;
+            jokeEl.classList.remove('show');
+            void jokeEl.offsetWidth;
+            jokeEl.classList.add('show');
+
+        } catch (error) {
+            jokeEl.innerHTML = '<div class="loading">😅 Oups ! La blague est coincée... Réessaye !</div>';
+            jokeEl.classList.add('show');
+        }
+
+        // Reset bouton
+        setTimeout(() => {
+            btn.textContent = '🎉 Sers-moi une blague ! 🎉';
+            btn.style.transform = '';
+        }, 1000);
+    }
+</script>
+</body>
+</html>

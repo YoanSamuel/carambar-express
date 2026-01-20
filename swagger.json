@@ -1,0 +1,264 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Carambar Jokes API",
+    "description": "Mini API de blagues pour Carambar & Co - Projet CDA",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Votre nom",
+      "email": "votre.email@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Serveur de développement"
+    }
+  ],
+  "paths": {
+    "/blagues": {
+      "post": {
+        "tags": ["blagues"],
+        "summary": "Ajouter une blague",
+        "description": "Crée une nouvelle blague via Postman",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JokeInput"
+              },
+              "example": {
+                "question": "Pourquoi les programmeurs aiment-ils l'hiver ?",
+                "answer": "Parce qu'il y a moins de bugs, ils sont tous congelés."
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Blague créée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Joke"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur"
+          }
+        }
+      },
+      "get": {
+        "tags": ["blagues"],
+        "summary": "Lister toutes les blagues",
+        "responses": {
+          "200": {
+            "description": "Liste des blagues",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Joke"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/blagues/{id}": {
+      "get": {
+        "tags": ["blagues"],
+        "summary": "Récupérer une blague par ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de la blague",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Blague trouvée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Joke"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Blague non trouvée"
+          }
+        }
+      },
+      "put": {
+        "tags": ["blagues"],
+        "summary": "Modifier une blague",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JokeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Blague modifiée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Joke"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Blague non trouvée"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["blagues"],
+        "summary": "Supprimer une blague",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Blague supprimée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Blague non trouvée"
+          }
+        }
+      }
+    },
+    "/blagues/random": {
+      "get": {
+        "tags": ["blagues"],
+        "summary": "Blague aléatoire (pour le front)",
+        "responses": {
+          "200": {
+            "description": "Blague aléatoire",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Joke"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Joke": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "question": {
+            "type": "string",
+            "example": "Pourquoi les programmeurs aiment-ils l'hiver ?"
+          },
+          "answer": {
+            "type": "string",
+            "example": "Parce qu'il y a moins de bugs, ils sont tous congelés."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "JokeInput": {
+        "type": "object",
+        "required": ["question", "answer"],
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "Success": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Blague supprimée"
+          }
+        }
+      }
+    }
+  }
+}

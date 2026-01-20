@@ -1,50 +1,67 @@
 const express = require("express");
 const sequelize = require('./database');
 const Joke = require('./Joke');
-
-sequelize.sync().then(() => console.log('db is ready to go'));
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
+const seed = require('./seed');
 const app = express();
 app.use(express.json());
 
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+sequelize.sync({force : true }).then(async () => {
+    console.log('db is ready to go');
+
+    // ✅ INSÉRER LES BLAGUES AU DEMARRAGE (une seule fois)
+    const count = await Joke.count();
+    if (count === 0) {
+        console.log('🌟 Insertion initiale des blagues Carambar...');
+        await seed();
+    }
+
+    app.listen(3000, () => {
+        console.log("app is running on http://localhost:3000");
+    });
+});
+
+
+// Fonction utilitaire
 async function getJokeById(req) {
     const requestedId = req.params.id;
-    const joke = await Joke.findOne({where: {id: requestedId}});
+    const joke = await Joke.findOne({ where: { id: requestedId } });
     return joke;
 }
 
-//POST Joke
+// POST - Créer une blague
 app.post('/blagues', async (req, res) => {
     try {
         const { question, answer } = req.body;
-        const joke = await Joke.create({
-            question,
-            answer
-        });
-
+        const joke = await Joke.create({ question, answer });
         res.status(201).json(joke);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Erreur lors de la création de la blague' });
+        res.status(500).json({ error: 'Erreur création blague' });
     }
-})
+});
 
-// GET All Joke
-app.get('/blagues', async(req, res) => {
-    const jokes = await Joke.findAll();
-    res.send(jokes);
-})
+// GET - Toutes les blagues
+app.get('/blagues', async (req, res) => {
+    try {
+        const jokes = await Joke.findAll();
+        res.json(jokes);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erreur liste blagues' });
+    }
+});
 
-// GET One Joke by ID
-
-
-
+// GET - Une blague par ID
 app.get('/blagues/:id', async (req, res) => {
     try {
         const joke = await getJokeById(req);
         if (!joke) {
             return res.status(404).json({ message: 'Blague non trouvée' });
         }
-
         res.json(joke);
     } catch (err) {
         console.error(err);
@@ -52,22 +69,50 @@ app.get('/blagues/:id', async (req, res) => {
     }
 });
 
-//PUT One joke by ID
+// PUT - Modifier une blague
 app.put('/blagues/:id', async (req, res) => {
-    const joke = await getJokeById(req);
-    joke.answer = req.body.answer;
-    joke.question = req.body.question;
+    try {
+        const joke = await getJokeById(req);
+        if (!joke) {
+            return res.status(404).json({ message: 'Blague non trouvée' });
+        }
 
-    await joke.save();
-    res.send('data updated.')
-})
+        const { question, answer } = req.body;
+        await joke.update({ question, answer });
+        res.json(joke);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erreur modification' });
+    }
+});
 
-// DELETE  JOKE
-app.delete('/blagues/:id', async(req, res) => {
-    const requestedId = req.params.id;
-    await Joke.destroy({where: {id: requestedId}})
-    res.send('Joke removed');
-})
-app.listen(3000, () => {
-  console.log("app is running");
+// DELETE - Supprimer une blague
+app.delete('/blagues/:id', async (req, res) => {
+    try {
+        const deleted = await Joke.destroy({ where: { id: req.params.id } });
+        if (!deleted) {
+            return res.status(404).json({ message: 'Blague non trouvée' });
+        }
+        res.json({ message: 'Blague supprimée' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erreur suppression' });
+    }
+});
+
+// GET - Blague aléatoire (pour le front)
+app.get('/blagues/random', async (req, res) => {
+    try {
+        const joke = await Joke.findOne({
+            order: sequelize.literal('RAND()'),
+            limit: 1
+        });
+        if (!joke) {
+            return res.status(404).json({ message: 'Aucune blague disponible' });
+        }
+        res.json(joke);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erreur blague aléatoire' });
+    }
 });
