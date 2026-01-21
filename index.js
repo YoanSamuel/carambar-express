@@ -138,22 +138,20 @@ const app = express();
 
 console.log("🚀 Boot start");
 
+app.get("/", (req, res) => {
+    res.status(200).send("OK");
+});
+
 app.get("/health", (req, res) => {
     res.json({ status: "ok" });
 });
 
 (async () => {
     try {
-        console.log("📦 Loading DB");
         const sequelize = require("./database");
 
-        console.log("🔌 Auth DB");
         await sequelize.authenticate();
-        console.log("✅ DB connected");
-
-        console.log("📐 Sync");
         await sequelize.sync();
-        console.log("✅ DB synced");
 
         const PORT = process.env.PORT || 3000;
         app.listen(PORT, "0.0.0.0", () => {
@@ -165,4 +163,3 @@ app.get("/health", (req, res) => {
         process.exit(1);
     }
 })();
-
