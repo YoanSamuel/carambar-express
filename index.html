@@ -178,7 +178,6 @@
             const response = await fetch(API_URL);
             const joke = await response.json();
 
-            // Affiche la blague avec animation
             jokeEl.innerHTML = `
                     <div class="joke-question">❓ ${joke.question}</div>
                     <div class="joke-answer">💥 ${joke.answer}</div>
