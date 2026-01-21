@@ -4,13 +4,13 @@ const Joke = require('./Joke');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
 const seed = require('./seed');
-const path = require('path');  // 🔥 AJOUTÉ
+const path = require('path');  // 🔥 AJOUTÉ pour sendFile
 const app = express();
 
 app.use(express.json());
-app.use(express.static('.'));  // 🔥 SERVE index.html
+app.use(express.static('.'));  // 🔥 SERVE tous les fichiers statiques (index.html, etc)
 
-// 🔥 HEALTH CHECK RENDER OBLIGATOIRE
+// 🔥 AFFICHAGE index.html sur la racine (OBLIGATOIRE Render)
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -25,21 +25,23 @@ app.use((req, res, next) => {
 
 sequelize.sync({force : true }).then(async () => {
     console.log('db is ready to go');
+
     const count = await Joke.count();
     if (count === 0) {
         console.log('🌟 Insertion initiale des blagues Carambar...');
         await seed();
+        console.log('✅ 10 blagues insérées !');
     }
 
     const PORT = process.env.PORT || 3000;
-    app.listen(PORT, '0.0.0.0', () => {  // 🔥 '0.0.0.0' OBLIGATOIRE
+    app.listen(PORT, '0.0.0.0', () => {  // 🔥 '0.0.0.0' OBLIGATOIRE Render
         console.log(`🚀 Carambar API ready on port ${PORT}`);
-        console.log(`✅ https://carambar-express.onrender.com/`);
-        console.log(`✅ https://carambar-express.onrender.com/api-docs`);
+        console.log(`✅ Page d'accueil: https://carambar-express.onrender.com/`);
+        console.log(`✅ Swagger: https://carambar-express.onrender.com/api-docs`);
     });
 });
 
-// Tes routes API (déjà parfaites)
+// Tes routes API (PARFAITES)
 async function getJokeById(req) {
     const requestedId = req.params.id;
     const joke = await Joke.findOne({ where: { id: requestedId } });
