@@ -8,7 +8,11 @@ const app = express();
 app.use(express.json());
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+});
 sequelize.sync({force : true }).then(async () => {
     console.log('db is ready to go');
 
@@ -31,6 +35,27 @@ async function getJokeById(req) {
     const joke = await Joke.findOne({ where: { id: requestedId } });
     return joke;
 }
+
+
+// GET - Blague aléatoire (pour le front)
+app.get('/blagues/random', async (req, res) => {
+    try {
+        const jokes = await Joke.findAll();
+        if (jokes.length === 0) {
+            return res.status(404).json({ message: 'Aucune blague' });
+        }
+
+        // Méthode JS pure = 100% sûr
+        const randomJoke = jokes[Math.floor(Math.random() * jokes.length)];
+        console.log('Random:', randomJoke.question);
+
+        res.json(randomJoke);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erreur' });
+    }
+});
+
 
 // POST - Créer une blague
 app.post('/blagues', async (req, res) => {
@@ -100,19 +125,3 @@ app.delete('/blagues/:id', async (req, res) => {
     }
 });
 
-// GET - Blague aléatoire (pour le front)
-app.get('/blagues/random', async (req, res) => {
-    try {
-        const joke = await Joke.findOne({
-            order: sequelize.literal('RAND()'),
-            limit: 1
-        });
-        if (!joke) {
-            return res.status(404).json({ message: 'Aucune blague disponible' });
-        }
-        res.json(joke);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Erreur blague aléatoire' });
-    }
-});
