@@ -26,6 +26,12 @@ sequelize.sync({force : true }).then(async () => {
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
         console.log(`🚀 Carambar API ready on port ${PORT}`);
+
+        const appUrl = `https://${process.env.RENDER_EXTERNAL_HOSTNAME || 'carambar-express'}.onrender.com`;
+        console.log(`🌐 LIVE URL: ${appUrl}`);
+        console.log(`📚 Swagger: ${appUrl}/api-docs`);
+        console.log(`🎲 Random: ${appUrl}/blagues/random`);
+        console.log(`📋 Blagues: ${appUrl}/blagues`);
     });
 });
 
