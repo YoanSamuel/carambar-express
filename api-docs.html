@@ -7,7 +7,7 @@
 <script>
     SwaggerUIBundle({
         dom_id: '#swagger-ui',
-        spec: fetch('./swagger.json').then(r => r.json()),
+        spec: fetch('swagger.json').then(r => r.json()),
         presets: [SwaggerUIBundle.presets.apis]
     });
 </script>
