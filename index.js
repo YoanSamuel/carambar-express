@@ -48,6 +48,10 @@ async function getJokeById(req) {
     return joke;
 }
 
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 app.get('/blagues/random', async (req, res) => {
     try {
         const jokes = await Joke.findAll();
