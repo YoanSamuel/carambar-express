@@ -4,13 +4,12 @@ const Joke = require('./Joke');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
 const seed = require('./seed');
-const path = require('path');  // 🔥 AJOUTÉ pour sendFile
+const path = require('path');
 const app = express();
 
 app.use(express.json());
-app.use(express.static('.'));  // 🔥 SERVE tous les fichiers statiques (index.html, etc)
 
-// 🔥 AFFICHAGE index.html sur la racine (OBLIGATOIRE Render)
+// 🔥 Route racine AVANT sequelize (pour Render health check)
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -23,34 +22,12 @@ app.use((req, res, next) => {
     next();
 });
 
-sequelize.sync({force : true }).then(async () => {
-    console.log('db is ready to go');
-
-    const count = await Joke.count();
-    if (count === 0) {
-        console.log('🌟 Insertion initiale des blagues Carambar...');
-        await seed();
-        console.log('✅ 10 blagues insérées !');
-    }
-
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, '0.0.0.0', () => {  // 🔥 '0.0.0.0' OBLIGATOIRE Render
-        console.log(`🚀 Carambar API ready on port ${PORT}`);
-        console.log(`✅ Page d'accueil: https://carambar-express.onrender.com/`);
-        console.log(`✅ Swagger: https://carambar-express.onrender.com/api-docs`);
-    });
-});
-
-// Tes routes API (PARFAITES)
+// 🔥 Tes routes API (AVANT sequelize)
 async function getJokeById(req) {
     const requestedId = req.params.id;
     const joke = await Joke.findOne({ where: { id: requestedId } });
     return joke;
 }
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
 
 app.get('/blagues/random', async (req, res) => {
     try {
@@ -63,6 +40,16 @@ app.get('/blagues/random', async (req, res) => {
     }
 });
 
+app.get('/blagues', async (req, res) => {
+    try {
+        const jokes = await Joke.findAll();
+        res.json(jokes);
+    } catch (err) {
+        res.status(500).json({ error: 'Erreur liste blagues' });
+    }
+});
+
+// Autres routes CRUD...
 app.post('/blagues', async (req, res) => {
     try {
         const { question, answer } = req.body;
@@ -73,43 +60,24 @@ app.post('/blagues', async (req, res) => {
     }
 });
 
-app.get('/blagues', async (req, res) => {
-    try {
-        const jokes = await Joke.findAll();
-        res.json(jokes);
-    } catch (err) {
-        res.status(500).json({ error: 'Erreur liste blagues' });
-    }
-});
+// 🔥 DEMARRAGE - DB en arrière-plan
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', async () => {
+    console.log(`🚀 Server démarré sur port ${PORT}`);
+    console.log(`✅ https://carambar-express.onrender.com/`);
 
-app.get('/blagues/:id', async (req, res) => {
+    // 🔥 DB en arrière-plan (non-bloquant)
     try {
-        const joke = await getJokeById(req);
-        if (!joke) return res.status(404).json({ message: 'Blague non trouvée' });
-        res.json(joke);
-    } catch (err) {
-        res.status(500).json({ message: 'Erreur serveur' });
-    }
-});
+        await sequelize.sync({ force: true });
+        console.log('✅ DB prête');
 
-app.put('/blagues/:id', async (req, res) => {
-    try {
-        const joke = await getJokeById(req);
-        if (!joke) return res.status(404).json({ message: 'Blague non trouvée' });
-        const { question, answer } = req.body;
-        await joke.update({ question, answer });
-        res.json(joke);
+        const count = await Joke.count();
+        if (count === 0) {
+            console.log('🌟 Insertion blagues...');
+            await seed();
+            console.log('✅ 10 blagues insérées !');
+        }
     } catch (err) {
-        res.status(500).json({ error: 'Erreur modification' });
-    }
-});
-
-app.delete('/blagues/:id', async (req, res) => {
-    try {
-        const deleted = await Joke.destroy({ where: { id: req.params.id } });
-        if (!deleted) return res.status(404).json({ message: 'Blague non trouvée' });
-        res.json({ message: 'Blague supprimée' });
-    } catch (err) {
-        res.status(500).json({ error: 'Erreur suppression' });
+        console.error('❌ Erreur DB:', err.message);
     }
 });
