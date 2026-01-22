@@ -21,7 +21,6 @@ module.exports = async function seed() {
         if (count === 0) {
             console.log('🌟 Insertion des blagues Carambar...');
 
-            // ✅ 100% sûr - un par un
             for (const jokeData of carambarJokes) {
                 await Joke.create(jokeData);
             }
