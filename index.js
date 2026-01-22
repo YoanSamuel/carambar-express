@@ -109,25 +109,6 @@ app.put("/blagues/:id", async (req, res) => {
     }
 });
 
-app.patch("/blagues/:id", async (req, res) => {
-    try {
-        const joke = await Joke.findByPk(req.params.id);
-
-        if (!joke) {
-            return res.status(404).json({ message: "Blague introuvable" });
-        }
-
-        joke.question = req.body.question ?? joke.question;
-        joke.answer = req.body.answer ?? joke.answer;
-
-        await joke.save();
-        res.json({ message: "Blague modifiée", joke });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Erreur serveur" });
-    }
-});
 
 app.delete("/blagues/:id", async (req, res) => {
     try {
